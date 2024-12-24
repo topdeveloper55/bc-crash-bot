@@ -29,30 +29,29 @@ while (1) {
     b_cnts = 0;
     b_status = false;
   }
-
-  if (!b_status && b_cnts == 5) {
+  if(!b_status && b_cnts == 5) {
     b_amt = "0.01";
     b_cnts = 0;
     b_status = true;
   }
-  
+
   try {
     let playerSelector = await page.waitForSelector(
       `text/Player`,
     );
     await playerSelector.click()
     await sleep(500);
-    console.log("trying --> ", b_status, b_cnts, b_amt)
     let textSelector = await page.waitForSelector(
       `text/${sel_text}`,
     );
     if (textSelector) {
-      if (b_cnts == 0) start = Date.now();
+      if(b_cnts == 0) start = Date.now();
       await page.locator('input').fill(b_amt);
       await textSelector.click()
       b_cnts += 1;
+      console.log("trying --> ", b_status, b_cnts, b_amt)
     }
-  } catch (e) {
+  } catch(e) {
     console.log("not found!")
   }
 }
