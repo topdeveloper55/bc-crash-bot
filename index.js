@@ -20,8 +20,8 @@ console.log("connected and started!")
 const buttons = await page.$$(".trenball-btn")
 
 // change this status for right timing
-let b_status = true;
-let sel_text = "Bet Red"
+let b_status = false;
+let sel_text = "Bet Green"
 
 let b_amt = BET_AMT
 let start = Date.now();
@@ -40,7 +40,7 @@ while (1) {
 
       // change part
       let now = Date.now();
-      if (start && b_status && now - start > 21000) {
+      if (start && b_status && now - start > 22000) {
         b_amt = BET_AMT
         sel_text = "Bet Green"
         b_cnts = 0;
