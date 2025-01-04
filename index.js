@@ -1,11 +1,12 @@
 const sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
+const BET_AMT = "0.2"
 
 // import puppeteer from 'puppeteer';
 import puppeteer from 'puppeteer-core';
 
 // http://localhost:9222/json/version
 const browser = await puppeteer.connect({
-  browserWSEndpoint: 'ws://127.0.0.1:9222/devtools/browser/22dc630e-3719-435f-b693-1db26f6704c1'
+  browserWSEndpoint: 'ws://127.0.0.1:9222/devtools/browser/62742ab0-8673-4f0a-b757-162c880546df'
 })
 const page = await browser.newPage();
 
@@ -16,42 +17,56 @@ await page.goto('https://bc.game/game/crash?type=trenball', {        //https://b
   timeout: 900000
 });
 console.log("connected and started!")
+const buttons = await page.$$(".trenball-btn")
 
+// change this status for right timing
+let b_status = true;
 let sel_text = "Bet Red"
-let b_amt = "0.01"
+
+let b_amt = BET_AMT
 let start = Date.now();
 let b_cnts = 0;
-let b_status = true;
 while (1) {
-  const now = Date.now();
-  if (b_status && now - start > 120000) {
-    b_amt = "0.0001"
-    b_cnts = 0;
-    b_status = false;
-  }
-  if(!b_status && b_cnts == 5) {
-    b_amt = "0.01";
-    b_cnts = 0;
-    b_status = true;
-  }
-
   try {
     let playerSelector = await page.waitForSelector(
       `text/Player`,
     );
     await playerSelector.click()
-    await sleep(500);
     let textSelector = await page.waitForSelector(
       `text/${sel_text}`,
     );
     if (textSelector) {
-      if(b_cnts == 0) start = Date.now();
       await page.locator('input').fill(b_amt);
-      await textSelector.click()
+
+      // change part
+      let now = Date.now();
+      if (start && b_status && now - start > 21000) {
+        b_amt = BET_AMT
+        sel_text = "Bet Green"
+        b_cnts = 0;
+        b_status = false;
+        console.log("triggered Green")
+        continue;
+      }
+      if (!b_status && b_cnts == 2) {
+        b_amt = BET_AMT;
+        sel_text = "Bet Red"
+        b_cnts = 0;
+        b_status = true;
+        start = 0;
+        console.log("triggered Red")
+        continue;
+      }
+      
+      if(b_status) await buttons[1].click()
+      else await buttons[2].click()
+      // await textSelector.click()
+      if (b_cnts == 0) start = Date.now();
       b_cnts += 1;
-      console.log("trying --> ", b_status, b_cnts, b_amt)
+      console.log("trying --> ", sel_text, b_amt, b_cnts)
     }
-  } catch(e) {
+    // await sleep(500)
+  } catch (e) {
     console.log("not found!")
   }
 }
