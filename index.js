@@ -1,5 +1,6 @@
 const sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
-const BET_AMT = "0.2"
+const BET_AMT = "0.3"
+const TRIGGER_TIME = 22500
 
 // import puppeteer from 'puppeteer';
 import puppeteer from 'puppeteer-core';
@@ -21,7 +22,6 @@ const buttons = await page.$$(".trenball-btn")
 
 // change this status for right timing
 let b_status = false;
-let sel_text = "Bet Green"
 
 let b_amt = BET_AMT
 let start = Date.now();
@@ -32,45 +32,37 @@ while (1) {
       `text/Player`,
     );
     await playerSelector.click()
-    let textSelector = await page.waitForSelector(
-      `text/${sel_text}`,
-    );
-    if (textSelector) {
-      await page.locator('input').fill(b_amt);
 
-      // change part
-      let now = Date.now();
-      if (start && b_status && now - start > 22000) {
-        b_amt = BET_AMT
-        sel_text = "Bet Green"
-        b_cnts = 0;
-        b_status = false;
-        console.log("triggered Green")
-        continue;
-      }
-      if (!b_status && b_cnts == 2) {
-        b_amt = BET_AMT;
-        sel_text = "Bet Red"
-        b_cnts = 0;
-        b_status = true;
-        start = 0;
-        console.log("triggered Red")
-        continue;
-      }
-      
-      if(b_status) await buttons[1].click()
-      else await buttons[2].click()
-      // await textSelector.click()
-      if (b_cnts == 0) start = Date.now();
-      b_cnts += 1;
-      console.log("trying --> ", sel_text, b_amt, b_cnts)
+    await page.locator('input').fill(b_amt);
+
+    // change part
+    let now = Date.now();
+    if (start && b_status && now - start > TRIGGER_TIME) {
+      b_cnts = 0;
+      b_status = false;
+      console.log("triggered Green")
     }
+    if (!b_status && b_cnts == 2) {
+      b_amt = BET_AMT;
+      b_cnts = 0;
+      b_status = true;
+      start = 0;
+      console.log("triggered Red")
+      // continue;
+    }
+
+    if (b_status) await buttons[1].click()
+    else await buttons[2].click()
+
+    if (b_cnts == 0) start = Date.now();
+    b_cnts += 1;
+    console.log("trying --> ", b_status ? "Red" : "Green", b_amt, b_cnts)
+    // }
     // await sleep(500)
   } catch (e) {
     console.log("not found!")
   }
 }
-
 
 console.log("End!")
 
