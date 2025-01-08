@@ -1,5 +1,5 @@
 const sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
-const BET_AMT = "0.3"
+const BET_AMT = "0.12"
 const TRIGGER_TIME = 22500
 
 // import puppeteer from 'puppeteer';
@@ -7,7 +7,7 @@ import puppeteer from 'puppeteer-core';
 
 // http://localhost:9222/json/version
 const browser = await puppeteer.connect({
-  browserWSEndpoint: 'ws://127.0.0.1:9222/devtools/browser/62742ab0-8673-4f0a-b757-162c880546df'
+  browserWSEndpoint: 'ws://127.0.0.1:9222/devtools/browser/5d61dcc6-d942-41db-ae16-ca65e995be45'
 })
 const page = await browser.newPage();
 
@@ -18,7 +18,7 @@ await page.goto('https://bc.game/game/crash?type=trenball', {        //https://b
   timeout: 900000
 });
 console.log("connected and started!")
-const buttons = await page.$$(".trenball-btn")
+let buttons = await page.$$(".trenball-btn")
 
 // change this status for right timing
 let b_status = false;
@@ -28,19 +28,16 @@ let start = Date.now();
 let b_cnts = 0;
 while (1) {
   try {
-    let playerSelector = await page.waitForSelector(
-      `text/Player`,
-    );
-    await playerSelector.click()
-
     await page.locator('input').fill(b_amt);
 
     // change part
     let now = Date.now();
     if (start && b_status && now - start > TRIGGER_TIME) {
+      // b_amt = "0.0001"
       b_cnts = 0;
       b_status = false;
       console.log("triggered Green")
+      // continue;
     }
     if (!b_status && b_cnts == 2) {
       b_amt = BET_AMT;
@@ -51,6 +48,7 @@ while (1) {
       // continue;
     }
 
+    buttons = await page.$$(".trenball-btn")
     if (b_status) await buttons[1].click()
     else await buttons[2].click()
 
@@ -61,6 +59,7 @@ while (1) {
     // await sleep(500)
   } catch (e) {
     console.log("not found!")
+    // console.error(e)
   }
 }
 
